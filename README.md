@@ -187,18 +187,23 @@ streamlit run app.py
 | Transformer | 0.5424 | -21.6629 |
 
 ---
-
 # Dashboard Preview
 
-Add screenshots inside the `screenshots/` folder and reference them here.
+## Main Dashboard
 
-Example:
-
-```markdown
 ![Dashboard](screenshots/dashboard_home.png)
-```
 
----
+## Feature Engineering
+
+![Feature Engineering](screenshots/feature_engineering.png)
+
+## Model Comparison
+
+![Model Comparison](screenshots/model_comparison.png)
+
+## Training Results
+
+![Training Results](screenshots/training_results.png)
 
 # Technologies Used
 
