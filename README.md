@@ -121,7 +121,7 @@ Stock-Price-Prediction-System/
 ## Clone Repository
 
 ```bash
-git clone YOUR_REPOSITORY_URL
+git clone https://github.com/ishitabhadani/stock-price-prediction-system-ml
 cd Stock-Price-Prediction-System
 ```
 
