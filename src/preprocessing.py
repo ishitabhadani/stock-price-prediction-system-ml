@@ -10,79 +10,96 @@ from src.utils import logger
 # HANDLE MISSING VALUES
 # =========================================================
 
-def clean_data(df: pd.DataFrame):
-    """
-    Handle missing values.
-    """
+def clean_data(df):
 
     logger.info("Cleaning dataset...")
 
     missing_before = df.isnull().sum().sum()
 
-    logger.info(f"Missing values before cleaning: {missing_before}")
+    logger.info(
+        f"Missing values before cleaning: {missing_before}"
+    )
 
     df = df.ffill().bfill()
 
     missing_after = df.isnull().sum().sum()
 
-    logger.info(f"Missing values after cleaning: {missing_after}")
+    logger.info(
+        f"Missing values after cleaning: {missing_after}"
+    )
 
     return df
 
 
 # =========================================================
-# NORMALIZE DATA
+# CREATE SEQUENCES PER STOCK
 # =========================================================
 
-def normalize_data(
-    data: pd.DataFrame,
-    column: str = "Close"
+def create_sequences_per_stock(
+    df,
+    sequence_length=60
 ):
-    """
-    Normalize stock prices using MinMaxScaler.
-    """
-
-    logger.info("Normalizing stock prices...")
-
-    scaler = MinMaxScaler(feature_range=(0, 1))
-
-    scaled_data = scaler.fit_transform(
-        data[[column]]
-    )
-
-    logger.info("Normalization complete.")
-
-    return scaled_data, scaler
-
-
-# =========================================================
-# CREATE SLIDING WINDOWS
-# =========================================================
-
-def create_sequences(
-    data,
-    sequence_length: int = 60
-):
-    """
-    Create time-series sliding windows.
-    """
 
     logger.info(
-        f"Creating sequences with window size {sequence_length}"
+        f"Creating sequences per stock "
+        f"(window={sequence_length})"
     )
 
     X = []
     y = []
 
-    for i in range(sequence_length, len(data)):
+    tickers = df["Ticker"].unique()
 
-        X.append(
-            data[i-sequence_length:i]
+    for ticker in tickers:
+
+        logger.info(
+            f"Processing {ticker}"
         )
 
-        y.append(
-            data[i]
+        stock_df = df[
+            df["Ticker"] == ticker
+        ].copy()
+
+        stock_df = stock_df.sort_values(
+            by="Date"
         )
+
+        # -------------------------------------
+        # USE ONLY CLOSE PRICE
+        # -------------------------------------
+
+        close_prices = stock_df[
+            ["Close"]
+        ].values
+
+        # -------------------------------------
+        # SCALE PER STOCK
+        # -------------------------------------
+
+        scaler = MinMaxScaler()
+
+        scaled_data = scaler.fit_transform(
+            close_prices
+        )
+
+        # -------------------------------------
+        # CREATE SEQUENCES
+        # -------------------------------------
+
+        for i in range(
+            sequence_length,
+            len(scaled_data)
+        ):
+
+            X.append(
+                scaled_data[
+                    i-sequence_length:i
+                ]
+            )
+
+            y.append(
+                scaled_data[i]
+            )
 
     X = np.array(X)
     y = np.array(y)
@@ -101,13 +118,12 @@ def create_sequences(
 def train_test_split_sequences(
     X,
     y,
-    train_ratio: float = 0.8
+    train_ratio=0.8
 ):
-    """
-    Split sequences into train and test sets.
-    """
 
-    split_index = int(len(X) * train_ratio)
+    split_index = int(
+        len(X) * train_ratio
+    )
 
     X_train = X[:split_index]
     X_test = X[split_index:]
@@ -120,35 +136,33 @@ def train_test_split_sequences(
         f"Test size: {len(X_test)}"
     )
 
-    return X_train, X_test, y_train, y_test
+    return (
+        X_train,
+        X_test,
+        y_train,
+        y_test
+    )
 
 
 # =========================================================
-# FULL PREPROCESSING PIPELINE
+# FULL PIPELINE
 # =========================================================
 
 def preprocess_pipeline(
     df,
-    target_column: str = "Close",
-    sequence_length: int = 60
+    sequence_length=60
 ):
-    """
-    Complete preprocessing pipeline.
-    """
 
     logger.info("=" * 60)
-    logger.info("Starting preprocessing pipeline")
+    logger.info(
+        "Starting preprocessing pipeline"
+    )
     logger.info("=" * 60)
 
     df = clean_data(df)
 
-    scaled_data, scaler = normalize_data(
+    X, y = create_sequences_per_stock(
         df,
-        target_column
-    )
-
-    X, y = create_sequences(
-        scaled_data,
         sequence_length
     )
 
@@ -156,12 +170,14 @@ def preprocess_pipeline(
         train_test_split_sequences(X, y)
     )
 
-    logger.info("Preprocessing pipeline complete.")
+    logger.info(
+        "Preprocessing pipeline complete."
+    )
 
     return (
         X_train,
         X_test,
         y_train,
         y_test,
-        scaler
+        None
     )

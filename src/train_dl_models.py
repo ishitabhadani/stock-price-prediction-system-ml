@@ -1,4 +1,10 @@
 
+import os
+
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+
+import tensorflow as tf
+
 import numpy as np
 import pandas as pd
 
@@ -10,20 +16,10 @@ from tensorflow.keras.layers import (
     Conv1D,
     MaxPooling1D,
     Flatten,
-    InputLayer,
-    MultiHeadAttention,
-    LayerNormalization,
-    GlobalAveragePooling1D
+    InputLayer
 )
 
-from tensorflow.keras.models import Model
-
-from tensorflow.keras.layers import (
-    Input,
-    Add
-)
-
-from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.optimizers.legacy import Adam
 
 from sklearn.metrics import (
     mean_absolute_error,
@@ -104,7 +100,9 @@ def build_lstm_model(input_shape):
     ])
 
     model.compile(
-        optimizer=Adam(0.001),
+        optimizer=Adam(
+            learning_rate=0.001
+        ),
         loss="mse"
     )
 
@@ -137,7 +135,9 @@ def build_cnn_model(input_shape):
     ])
 
     model.compile(
-        optimizer=Adam(0.001),
+        optimizer=Adam(
+            learning_rate=0.001
+        ),
         loss="mse"
     )
 
@@ -148,36 +148,74 @@ def build_cnn_model(input_shape):
 # TRANSFORMER MODEL
 # =========================================================
 
-def build_transformer_model(input_shape):
+# def build_transformer_model(
+#     input_shape
+# ):
 
-    inputs = Input(shape=input_shape)
+#     inputs = Input(shape=input_shape)
 
-    attention = MultiHeadAttention(
-        num_heads=2,
-        key_dim=32
-    )(inputs, inputs)
+#     # -----------------------------------------
+#     # Multi-head attention
+#     # -----------------------------------------
 
-    x = Add()([inputs, attention])
+#     attention = MultiHeadAttention(
+#         num_heads=4,
+#         key_dim=32
+#     )(inputs, inputs)
 
-    x = LayerNormalization()(x)
+#     attention = Dropout(0.1)(
+#         attention
+#     )
 
-    x = GlobalAveragePooling1D()(x)
+#     attention = LayerNormalization(
+#         epsilon=1e-6
+#     )(attention + inputs)
 
-    x = Dense(64, activation="relu")(x)
+#     # -----------------------------------------
+#     # Feed Forward
+#     # -----------------------------------------
 
-    outputs = Dense(1)(x)
+#     ff = Dense(
+#         64,
+#         activation="relu"
+#     )(attention)
 
-    model = Model(
-        inputs,
-        outputs
-    )
+#     ff = Dense(
+#         input_shape[-1]
+#     )(ff)
 
-    model.compile(
-        optimizer=Adam(0.001),
-        loss="mse"
-    )
+#     ff = LayerNormalization(
+#         epsilon=1e-6
+#     )(ff + attention)
 
-    return model
+#     # -----------------------------------------
+#     # Pooling
+#     # -----------------------------------------
+
+#     x = GlobalAveragePooling1D()(ff)
+
+#     x = Dense(
+#         64,
+#         activation="relu"
+#     )(x)
+
+#     x = Dropout(0.2)(x)
+
+#     outputs = Dense(1)(x)
+
+#     model = Model(
+#         inputs,
+#         outputs
+#     )
+
+#     model.compile(
+#         optimizer=Adam(
+#             learning_rate=0.0001
+#         ),
+#         loss="mse"
+#     )
+
+#     return model
 
 
 # =========================================================
@@ -267,7 +305,7 @@ def train_dl_models_pipeline(
 
     save_dl_model(
         lstm_model,
-        "lstm_model.h5"
+        "lstm_model.keras"
     )
 
     results.append(lstm_metrics)
@@ -295,7 +333,7 @@ def train_dl_models_pipeline(
 
     save_dl_model(
         cnn_model,
-        "cnn_model.h5"
+        "cnn_model.keras"
     )
 
     results.append(cnn_metrics)
@@ -304,29 +342,29 @@ def train_dl_models_pipeline(
     # TRANSFORMER
     # -----------------------------------------------------
 
-    transformer_model = build_transformer_model(
-        input_shape
-    )
+    # transformer_model = build_transformer_model(
+    #     input_shape
+    # )
 
-    train_dl_model(
-        transformer_model,
-        X_train,
-        y_train
-    )
+    # train_dl_model(
+    #     transformer_model,
+    #     X_train,
+    #     y_train
+    # )
 
-    transformer_metrics = evaluate_dl_model(
-        transformer_model,
-        X_test,
-        y_test,
-        "Transformer"
-    )
+    # transformer_metrics = evaluate_dl_model(
+    #     transformer_model,
+    #     X_test,
+    #     y_test,
+    #     "Transformer"
+    # )
 
-    save_dl_model(
-        transformer_model,
-        "transformer_model.h5"
-    )
+    # save_dl_model(
+    #     transformer_model,
+    #     "transformer_model.keras"
+    # )
 
-    results.append(transformer_metrics)
+    # results.append(transformer_metrics)
 
     results_df = pd.DataFrame(results)
 

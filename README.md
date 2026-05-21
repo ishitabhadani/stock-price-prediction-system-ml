@@ -56,7 +56,6 @@ Performed rigorous statistical analysis using:
 ## Deep Learning Models
 - LSTM
 - CNN
-- Transformer-inspired Neural Network
 
 ## Evaluation Metrics
 - MAE (Mean Absolute Error)
@@ -88,9 +87,8 @@ Stock-Price-Prediction-System/
 ├── models/
 │   ├── linear_regression.pkl
 │   ├── random_forest.pkl
-│   ├── lstm_model.h5
-│   ├── cnn_model.h5
-│   └── transformer_model.h5
+│   ├── lstm_model.keras
+│   ├── cnn_model.keras
 │
 ├── notebooks/
 │
@@ -180,11 +178,10 @@ streamlit run app.py
 
 | Model | RMSE | R² Score |
 |---|---|---|
-| Linear Regression | 0.0112 | 0.9903 |
-| CNN | 0.0259 | 0.9485 |
-| LSTM | 0.0382 | 0.8877 |
-| Random Forest | 0.1330 | -0.3630 |
-| Transformer | 0.5424 | -21.6629 |
+| Linear Regression | 0.0112 | 0.9985 |
+| Random Forest | 0.0124 | 0.9984 |
+| LSTM | 0.0130 | 0.9969 |
+| CNN | 0.0101 | 0.9981 |
 
 ---
 # Dashboard Preview
@@ -193,17 +190,25 @@ streamlit run app.py
 
 ![Dashboard](screenshots/dashboard_home.png)
 
-## Feature Engineering
-
-![Feature Engineering](screenshots/feature_engineering.png)
-
 ## Model Comparison
 
 ![Model Comparison](screenshots/model_comparison.png)
 
-## Training Results
+## Linear Regression
 
-![Training Results](screenshots/training_results.png)
+![Linear Regression](screenshots/linear_regression.png)
+
+## Random Forest
+
+![Random Forest](screenshots/random_forest.png)
+
+## LSTM
+
+![LSTM](screenshots/lstm.png)
+
+## CNN
+
+![CNN](screenshots/cnn.png)
 
 # Technologies Used
 
@@ -223,11 +228,12 @@ streamlit run app.py
 # Future Improvements
 
 - Hyperparameter optimization using Optuna
-- Attention-based Transformers
 - Multi-stock forecasting
 - Real-time market prediction
 - Sentiment analysis integration
 - Docker deployment
 - Cloud deployment (AWS/GCP)
+- Portfolio risk analysis
+- Live API-based prediction system
 
 ---

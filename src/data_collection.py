@@ -1,75 +1,121 @@
 import yfinance as yf
 import pandas as pd
 
-from src.utils import logger, save_dataframe
-
+from src.utils import (
+    logger,
+    save_dataframe
+)
 
 # =========================================================
-# DOWNLOAD STOCK DATA
+# DOWNLOAD MULTIPLE STOCKS
 # =========================================================
 
-def download_stock_data(
-    ticker: str = "AAPL",
-    start_date: str = "2015-01-01",
-    end_date: str = "2025-01-01",
-    save_path: str = "data/stock_data.csv"
-):
-    """
-    Download historical stock data using Yahoo Finance.
-    """
+def download_stock_data():
 
-    logger.info(f"Downloading stock data for {ticker}...")
+    tickers = [
+        "AAPL",
+        "MSFT",
+        "GOOGL",
+        "AMZN",
+        "META",
+        "NVDA",
+        "TSLA",
+        "NFLX",
+        "JPM",
+        "SPY"
+    ]
 
-    df = yf.download(
-        ticker,
-        start=start_date,
-        end=end_date
+    all_data = []
+
+    for ticker in tickers:
+
+        logger.info(
+            f"Downloading data for {ticker}"
+        )
+
+        df = yf.download(
+            ticker,
+            start="2000-01-01",
+            end="2025-01-01",
+            interval="1d",
+            auto_adjust=True
+        )
+
+        # -------------------------------------------------
+        # FIX MULTI-INDEX COLUMNS
+        # -------------------------------------------------
+
+        df.columns = df.columns.get_level_values(0)
+
+        df.reset_index(inplace=True)
+
+        # -------------------------------------------------
+        # KEEP ONLY REQUIRED COLUMNS
+        # -------------------------------------------------
+
+        df = df[
+            [
+                "Date",
+                "Open",
+                "High",
+                "Low",
+                "Close",
+                "Volume"
+            ]
+        ]
+
+        df["Ticker"] = ticker
+
+        all_data.append(df)
+
+    final_df = pd.concat(
+        all_data,
+        ignore_index=True
     )
 
-    if df.empty:
-        raise ValueError("Downloaded dataframe is empty.")
+    final_df.sort_values(
+        by="Date",
+        inplace=True
+    )
 
-    df.columns = df.columns.get_level_values(0)
-
-    df.reset_index(inplace=True)
-
-    save_dataframe(df, save_path)
+    save_dataframe(
+        final_df,
+        "data/stock_data.csv"
+    )
 
     logger.info(
-        f"Downloaded {len(df)} rows for {ticker}"
+        f"Dataset shape: {final_df.shape}"
+    )
+
+    return final_df
+
+
+# =========================================================
+# LOAD DATASET
+# =========================================================
+
+def load_stock_data():
+
+    logger.info(
+        "Loading stock dataset..."
+    )
+
+    df = pd.read_csv(
+        "data/stock_data.csv",
+        low_memory=False
+    )
+
+    logger.info(
+        f"Dataset loaded — shape: {df.shape}"
     )
 
     return df
 
 
 # =========================================================
-# LOAD SAVED DATA
-# =========================================================
-
-def load_stock_data(
-    file_path: str = "data/stock_data.csv"
-):
-    """
-    Load stock dataset from CSV.
-    """
-
-    logger.info(f"Loading dataset from '{file_path}'")
-
-    df = pd.read_csv(file_path)
-
-    logger.info(
-        f"Dataset loaded successfully — shape: {df.shape}"
-    )
-
-    return df
-
-
-# =========================================================
-# QUICK TEST
+# MAIN
 # =========================================================
 
 if __name__ == "__main__":
 
-    stock_df = download_stock_data()
-
-    print(stock_df.head())
+    download_stock_data()
